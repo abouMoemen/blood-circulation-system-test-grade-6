@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تقييم: جهاز دوران الدم</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a1a2e;
+    direction: rtl;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+  header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; }
+  header p { font-size: 1rem; opacity: 0.85; }
+  .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+  }
+  .container { max-width: 820px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+  .progress-bar-wrap {
+    background: #dde2ea;
+    border-radius: 10px;
+    height: 8px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #0f3460, #e94560);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    direction: ltr;
+  }
+  .question-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    border: 2px solid #e8ecf2;
+    transition: border-color 0.3s;
+  }
+  .question-card.answered-correct { border-color: #27ae60; }
+  .question-card.answered-wrong { border-color: #e74c3c; }
+  .question-num {
+    font-size: 0.78rem;
+    color: #888;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .options { display: flex; flex-direction: column; gap: 0.6rem; }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f8f9fc;
+    border: 1.5px solid #dde2ea;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    font-size: 0.97rem;
+    color: #1a1a2e;
+    text-align: right;
+    direction: rtl;
+    transition: all 0.2s;
+    font-family: inherit;
+    width: 100%;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: #eef2ff;
+    border-color: #0f3460;
+    transform: translateX(-2px);
+  }
+  .option-btn:disabled { cursor: default; }
+  .option-btn .circle {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #888;
+    background: white;
+    transition: all 0.2s;
+  }
+  .option-btn.correct {
+    background: #eafaf1;
+    border-color: #27ae60;
+    color: #1e8449;
+  }
+  .option-btn.correct .circle {
+    background: #27ae60;
+    border-color: #27ae60;
+    color: white;
+  }
+  .option-btn.wrong {
+    background: #fdedec;
+    border-color: #e74c3c;
+    color: #c0392b;
+  }
+  .option-btn.wrong .circle {
+    background: #e74c3c;
+    border-color: #e74c3c;
+    color: white;
+  }
+  .option-btn.reveal {
+    background: #eafaf1;
+    border-color: #27ae60;
+    color: #1e8449;
+    opacity: 0.85;
+  }
+  .feedback {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    display: none;
+    line-height: 1.5;
+  }
+  .feedback.correct { background: #d5f5e3; color: #1e8449; display: block; }
+  .feedback.wrong { background: #fadbd8; color: #c0392b; display: block; }
+  .score-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    border: 2px solid #dde2ea;
+    display: none;
+  }
+  .score-card.show { display: block; }
+  .score-circle {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 0 auto 1.5rem;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+  }
+  .score-circle .score-label { font-size: 0.85rem; font-weight: 400; opacity: 0.9; }
+  .score-excellent { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+  .score-good { background: linear-gradient(135deg, #2980b9, #3498db); }
+  .score-pass { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .score-fail { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .score-message { font-size: 1.3rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.5rem; }
+  .score-sub { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .stat-item {
+    background: #f8f9fc;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-num { font-size: 1.6rem; font-weight: 700; }
+  .stat-lbl { font-size: 0.8rem; color: #777; margin-top: 0.2rem; }
+  .green { color: #27ae60; }
+  .red { color: #e74c3c; }
+  .blue { color: #2980b9; }
+  .btn-restart {
+    background: linear-gradient(135deg, #0f3460, #16213e);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem 2.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 1rem;
+  }
+  .btn-restart:hover { opacity: 0.9; transform: scale(1.02); }
+  .btn-submit {
+    background: linear-gradient(135deg, #e94560, #c0392b);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 3rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    display: block;
+    margin: 2rem auto 0;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-submit:hover { opacity: 0.9; transform: scale(1.02); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 1.5rem 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #eee;
+  }
+  @media (max-width: 500px) {
+    header h1 { font-size: 1.3rem; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🩸 جهاز دوران الدم</h1>
+  <p>تقييم شامل — اختبر معلوماتك</p>
+  <div class="badge">25 سؤالاً متعدد الاختيار</div>
+</header>
+
+<div class="container">
+  <div class="progress-label" id="prog-label">السؤال 0 من 25</div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+
+  <div id="quiz-area"></div>
+
+  <button class="btn-submit" id="submit-btn" onclick="submitQuiz()" disabled>
+    ✅ إنهاء التقييم وعرض النتيجة
+  </button>
+
+  <div class="score-card" id="score-card">
+    <div class="score-circle" id="score-circle">
+      <span id="score-pct">0%</span>
+      <span class="score-label">النتيجة</span>
+    </div>
+    <div class="score-message" id="score-msg"></div>
+    <div class="score-sub" id="score-sub"></div>
+    <div class="stats-grid">
+      <div class="stat-item"><div class="stat-num green" id="s-correct">0</div><div class="stat-lbl">✅ صحيح</div></div>
+      <div class="stat-item"><div class="stat-num red" id="s-wrong">0</div><div class="stat-lbl">❌ خطأ</div></div>
+      <div class="stat-item"><div class="stat-num blue" id="s-total">25</div><div class="stat-lbl">📝 المجموع</div></div>
+    </div>
+    <button class="btn-restart" onclick="restartQuiz()">🔄 إعادة المحاولة</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    section: "القلب",
+    q: "كم عدد أجزاء القلب الرئيسية؟",
+    opts: ["جزءان", "ثلاثة أجزاء", "أربعة أجزاء", "خمسة أجزاء"],
+    ans: 2,
+    exp: "يتكون القلب من أربعة أجزاء: بطينان (أيمن وأيسر) وأذينان (أيمن وأيسر)."
+  },
+  {
+    section: "القلب",
+    q: "ما الدور الرئيسي للصمامات داخل القلب؟",
+    opts: ["ضخ الدم إلى الرئتين", "توجيه دوران الدم داخل القلب", "تصفية الدم من الشوائب", "تنظيم ضربات القلب"],
+    ans: 1,
+    exp: "تقوم الصمامات بدور أساسي في توجيه دوران الدم داخل القلب، فتمنع رجوعه إلى الاتجاه الخاطئ."
+  },
+  {
+    section: "الأوعية الدموية",
+    q: "ما الوظيفة الرئيسية للشرايين؟",
+    opts: ["نقل الدم من الجسم إلى القلب", "نقل الدم من القلب إلى أعضاء الجسم", "تبادل الغازات مع الخلايا", "حمل ثاني أكسيد الكربون"],
+    ans: 1,
+    exp: "تنقل الشرايين الدم من القلب إلى مختلف أعضاء الجسم."
+  },
+  {
+    section: "الأوعية الدموية",
+    q: "ما الاسم الصحيح للأوعية الدقيقة جداً التي تتفرع عن الشرايين الصغيرة؟",
+    opts: ["الأوردة", "الشعيرات الدموية", "الأوعية اللمفية", "الشرايين التاجية"],
+    ans: 1,
+    exp: "عند وصول الشريان إلى عضو ما يتشعب إلى شرايين صغيرة تتشعب بدورها إلى أوعية دقيقة تسمى الأوعية الشعرية."
+  },
+  {
+    section: "الأوعية الدموية",
+    q: "ماذا ينتقل من الدم إلى خلايا الجسم عبر الأوعية الشعرية؟",
+    opts: ["ثاني أكسيد الكربون والإفرازات الضارة", "الغذاء والأكسيجين", "الكريات البيضاء فقط", "البالزما فقط"],
+    ans: 1,
+    exp: "عند مرور الدم في الأوعية الشعرية ينتقل الغذاء والأكسيجين بالانتشار من الدم إلى خلايا الجسم."
+  },
+  {
+    section: "الدورة الدموية",
+    q: "ما الأذين الذي يستقبل الدم القادم من الجسم عبر الوريد الأجوف؟",
+    opts: ["الأذين الأيسر", "الأذين الأيمن", "البطين الأيمن", "البطين الأيسر"],
+    ans: 1,
+    exp: "تحمل الأوردة الدم من الجسم إلى الأذين الأيمن، ثم ينتقل إلى البطين الأيمن."
+  },
+  {
+    section: "الدورة الدموية",
+    q: "أين تتم عملية تبادل الغازات في الدورة الدموية الصغرى؟",
+    opts: ["في القلب", "في الكبد", "في الرئتين", "في الكليتين"],
+    ans: 2,
+    exp: "يضخ البطين الأيمن الدم عبر الشرايين إلى الرئتين حيث يتم تبادل الغازات: يُطلق ثاني أكسيد الكربون ويُمتص الأكسيجين."
+  },
+  {
+    section: "الدورة الدموية",
+    q: "كيف يتغير لون الدم بعد مروره بالرئتين وامتصاصه للأكسيجين؟",
+    opts: ["من أحمر قانٍ إلى أحمر داكن مائل للزرقة", "من أحمر داكن مائل للزرقة إلى أحمر قانٍ زاهي اللون", "يبقى اللون ثابتاً", "يصبح أصفر شاحباً"],
+    ans: 1,
+    exp: "يتحول لون الدم من أحمر داكن مائل إلى الزرقة إلى أحمر قانٍ زاهي اللون بعد امتصاص الأكسيجين في الرئتين."
+  },
+  {
+    section: "الدورة الدموية",
+    q: "ما الوريد الذي ينقل الدم من الرئتين إلى القلب؟",
+    opts: ["الوريد الأجوف", "الوريد الرئوي", "الوريد التاجي", "الوريد الكبدي"],
+    ans: 1,
+    exp: "تقوم الأوردة الرئوية بنقل الدم من الرئتين إلى الأذين الأيسر."
+  },
+  {
+    section: "الدورة الدموية",
+    q: "ما الشريان الكبير الذي يضخ منه البطين الأيسر الدم إلى جميع أعضاء الجسم؟",
+    opts: ["الشريان الرئوي", "الشريان التاجي", "الشريان الأبهر", "الشريان السباتي"],
+    ans: 2,
+    exp: "يضخ البطين الأيسر الدم إلى جميع أعضاء الجسم عبر الشريان الأبهر (الأورطي)."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما نسبة البالزما من مجموع الدم تقريباً؟",
+    opts: ["45%", "55%", "30%", "70%"],
+    ans: 1,
+    exp: "البالزما سائل أصفر يكون حوالي 55% من الدم."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما نسبة الماء في تركيبة البالزما؟",
+    opts: ["55%", "70%", "90%", "100%"],
+    ans: 2,
+    exp: "تتركب البالزما من الماء بنسبة 90% ومن مواد عديدة منحلة فيه تشكل مجموعها حوالي 10%."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما الشكل الطبيعي للكريات الحمراء لدى الإنسان؟",
+    opts: ["كرات مجوفة", "أقراص مقعرة الوجهين", "أسطوانات طويلة", "مكعبات صغيرة"],
+    ans: 1,
+    exp: "الكريات الحمراء لدى الإنسان ولدى الثدييات بصورة عامة أقراص مقعرة الوجهين."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما الصبغة الأساسية الموجودة في الكريات الحمراء والمسؤولة عن نقل الغازات؟",
+    opts: ["الكلوروفيل", "البيليريبين", "الهيموغلوبين", "الميلانين"],
+    ans: 2,
+    exp: "تعد الكريات الحمراء أكياساً مملوءة بخضاب الدم (هيموغلوبين) الذي يشكل حوالي 95% من الوزن الجاف للكرية."
+  },
+  {
+    section: "مكونات الدم",
+    q: "أين تتكون الكريات الحمراء؟",
+    opts: ["في الكبد", "في الطحال", "في نخاع العظام", "في الغدد اللمفية"],
+    ans: 2,
+    exp: "تتكون الكريات الحمراء في نخاع العظام حيث تكون ذات نواة ولكنها تفقد نواتها قبل أن تُلقى في الدم."
+  },
+  {
+    section: "مكونات الدم",
+    q: "كم تعيش الكرية الحمراء تقريباً قبل أن تتخرب؟",
+    opts: ["30 يوماً", "60 يوماً", "90 يوماً", "120 يوماً"],
+    ans: 3,
+    exp: "تعيش الكرية الحمراء حوالي 120 يوماً وبعدها تتخرب وتتحطم ضمن الطحال."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما الدور الرئيسي للكريات البيضاء؟",
+    opts: ["نقل الأكسيجين", "تخثر الدم", "الدفاع عن الجسم ضد الجراثيم", "نقل المواد الغذائية"],
+    ans: 2,
+    exp: "تقوم الكريات البيضاء بدور دفاعي إذ تحيط بالخلايا الميتة والجراثيم وتبتلعها كما أن لها القدرة على تكوين ضادات."
+  },
+  {
+    section: "مكونات الدم",
+    q: "ما الوظيفة الأساسية للصفيحات الدموية؟",
+    opts: ["نقل الأكسيجين", "تخثر الدم وسد الجراح", "إنتاج الأجسام المضادة", "امتصاص الغذاء"],
+    ans: 1,
+    exp: "للصفيحات الدموية دور هام في تخثر الدم إذ تتفتت عند تعرضها للهواء فتشكل مع الكريات الحمراء وخيوط الليفين سدادة تسد الجراح."
+  },
+  {
+    section: "وظائف الدم",
+    q: "ما دور البالزما في نقل المواد؟",
+    opts: ["نقل الأكسيجين فقط", "نقل الغازات المذابة فقط", "نقل الأغذية والفضلات والغازات المذابة", "نقل الكريات الحمراء فقط"],
+    ans: 2,
+    exp: "تتمثل وظيفة البالزما في نقل الأغذية المهضومة إلى خلايا الجسم، ونقل الفضلات إلى الكليتين، إضافة إلى نقل الغازات المذابة فيها."
+  },
+  {
+    section: "أمراض الأوعية",
+    q: "ما تعريف النزيف الشرياني؟",
+    opts: ["دم قاتم يسيل ببطء", "دم أحمر قانٍ يتفجر من الجرح بنفضات", "نزيف بالمخ", "نزيف داخلي خفيف"],
+    ans: 1,
+    exp: "النزيف الشرياني: يتفجر فيه الدم أحمر قانياً من الجرح بنفضات، وهو الأخطر بين أنواع النزيف الخارجي."
+  },
+  {
+    section: "أمراض الأوعية",
+    q: "ما الإجراء الأول الواجب اتخاذه في حالة النزيف الخارجي؟",
+    opts: ["إعطاء المصاب دواءً مسكناً", "إيقاف النزيف باستعمال ضمادة محكمة الشد", "وضع ثلج على الجرح", "رفع القدمين للأعلى"],
+    ans: 1,
+    exp: "تتلخص الأعمال الواجبة في حالة النزيف الخارجي في: إيقاف النزيف باستعمال ضمادة محكمة الشد، ثم تضميد الجرح."
+  },
+  {
+    section: "أمراض الأوعية",
+    q: "ما مرض توسع أوردة الطرفين السفليين الناتج عن الوقوف ساعات طويلة؟",
+    opts: ["تصلب الشرايين", "الدوالي", "التهاب الأوردة", "السكتة المخية"],
+    ans: 1,
+    exp: "الدوالي: توسع في أوردة الطرفين السفليين، وينتج عن استمرار الوقوف ساعات متواصلة."
+  },
+  {
+    section: "أمراض الأوعية",
+    q: "ما أعراض السكتة المخية (النقطة)؟",
+    opts: ["ألم في الصدر وضيق في التنفس", "فقدان الوعي وإصابة الشخص بشلل نصفي", "نزيف خارجي غزير", "ارتفاع درجة الحرارة"],
+    ans: 1,
+    exp: "من أعراض السكتة المخية: فقدان الوعي وإصابة الشخص بشلل نصفي."
+  },
+  {
+    section: "الوقاية",
+    q: "كيف يمكن تقوية عضلة القلب وتنشيط الدورة الدموية؟",
+    opts: ["بالراحة التامة وعدم الحركة", "بالتمارين الرياضية المعتدلة", "بتناول الأدوية يومياً", "بشرب كميات كبيرة من السوائل"],
+    ans: 1,
+    exp: "يجب تنشيط الدورة الدموية وتقوية القلب بالتمارين الرياضية المعتدلة لأن عضلة القلب كسائر العضلات تزداد قوة ونشاطاً بالتمرين."
+  },
+  {
+    section: "الوقاية",
+    q: "لماذا يجب تجنب الكحول للحفاظ على جهاز الدوران؟",
+    opts: ["لأنه يسبب السمنة فقط", "لأنه مادة سامة تؤثر في الدم وجهاز الدوران", "لأنه يرفع ضغط الدم مؤقتاً فقط", "لا يوجد أي تأثير له"],
+    ans: 1,
+    exp: "ينبغي تجنب المواد السامة التي تؤثر في الدم وجهاز الدوران كالكحول."
+  }
+];
+
+let answered = new Array(questions.length).fill(null);
+let userChoices = new Array(questions.length).fill(null);
+
+function buildQuiz() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = '';
+  let lastSection = '';
+
+  questions.forEach((q, qi) => {
+    if (q.section !== lastSection) {
+      lastSection = q.section;
+      const sec = document.createElement('div');
+      sec.className = 'section-title';
+      sec.textContent = '📌 ' + q.section;
+      area.appendChild(sec);
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'card-' + qi;
+
+    const letters = ['أ', 'ب', 'ج', 'د'];
+    let optsHTML = q.opts.map((o, oi) =>
+      `<button class="option-btn" id="opt-${qi}-${oi}" onclick="choose(${qi},${oi})">
+        <span class="circle">${letters[oi]}</span>${o}
+       </button>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="question-num">السؤال ${qi + 1} من ${questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">${optsHTML}</div>
+      <div class="feedback" id="fb-${qi}"></div>
+    `;
+    area.appendChild(card);
+  });
+
+  updateProgress();
+  checkSubmitReady();
+}
+
+function choose(qi, oi) {
+  if (answered[qi] !== null) return;
+  answered[qi] = true;
+  userChoices[qi] = oi;
+
+  const q = questions[qi];
+  const card = document.getElementById('card-' + qi);
+  const fb = document.getElementById('fb-' + qi);
+
+  for (let i = 0; i < q.opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === q.ans) btn.classList.add(oi !== q.ans ? 'reveal' : 'correct');
+  }
+
+  const chosen = document.getElementById(`opt-${qi}-${oi}`);
+  if (oi === q.ans) {
+    chosen.classList.add('correct');
+    card.classList.add('answered-correct');
+    fb.className = 'feedback correct';
+    fb.textContent = '✅ إجابة صحيحة! ' + q.exp;
+  } else {
+    chosen.classList.add('wrong');
+    card.classList.add('answered-wrong');
+    fb.className = 'feedback wrong';
+    fb.textContent = '❌ إجابة خاطئة. ' + q.exp;
+  }
+
+  updateProgress();
+  checkSubmitReady();
+}
+
+function updateProgress() {
+  const done = answered.filter(Boolean).length;
+  document.getElementById('prog-label').textContent = `تمت الإجابة على ${done} من ${questions.length} سؤالاً`;
+  document.getElementById('prog-bar').style.width = (done / questions.length * 100) + '%';
+}
+
+function checkSubmitReady() {
+  const done = answered.filter(Boolean).length;
+  document.getElementById('submit-btn').disabled = done < questions.length;
+}
+
+function submitQuiz() {
+  let correct = 0;
+  userChoices.forEach((c, i) => { if (c === questions[i].ans) correct++; });
+  const wrong = questions.length - correct;
+  const pct = Math.round(correct / questions.length * 100);
+
+  document.getElementById('submit-btn').style.display = 'none';
+
+  const sc = document.getElementById('score-card');
+  sc.classList.add('show');
+
+  const circle = document.getElementById('score-circle');
+  circle.className = 'score-circle ' + (pct >= 80 ? 'score-excellent' : pct >= 60 ? 'score-good' : pct >= 50 ? 'score-pass' : 'score-fail');
+  document.getElementById('score-pct').textContent = pct + '%';
+
+  const msgs = [
+    [80, 'ممتاز! 🌟', 'أداء رائع، أنت تعرف هذا الموضوع جيداً!'],
+    [60, 'جيد 👍', 'أداء جيد، مع بعض المراجعة ستتحسن أكثر.'],
+    [50, 'مقبول 😐', 'نتيجة مقبولة، تحتاج إلى مراجعة أكثر.'],
+    [0, 'يحتاج مراجعة 📖', 'راجع الدرس جيداً وأعد المحاولة.']
+  ];
+  const [, msg, sub] = msgs.find(([t]) => pct >= t);
+  document.getElementById('score-msg').textContent = msg;
+  document.getElementById('score-sub').textContent = sub;
+  document.getElementById('s-correct').textContent = correct;
+  document.getElementById('s-wrong').textContent = wrong;
+
+  sc.scrollIntoView({ behavior: 'smooth' });
+}
+
+function restartQuiz() {
+  answered = new Array(questions.length).fill(null);
+  userChoices = new Array(questions.length).fill(null);
+  document.getElementById('score-card').classList.remove('show');
+  document.getElementById('submit-btn').style.display = 'block';
+  document.getElementById('submit-btn').disabled = true;
+  buildQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+buildQuiz();
+</script>
+</body>
+</html>
